@@ -1,0 +1,26 @@
+[project]
+name = "FineWebPretraining"
+version = "1.0.0"
+description = "Scripts for filtering FineWeb-Edu by education score, tokenizing it into fixed-size blocks, and pretraining/fine-tuning a small causal LM on the result."
+authors = [{name = "mohsin raja", email = "167155387+gyatgitpandaclatt@users.noreply.github.com"}]
+requires-python = ">=3.9"
+dynamic = ["optional-dependencies"]
+dependencies = [
+    "torch",
+    "transformers",
+    "datasets",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+optional-dependencies = {dev = {file = ["dev-requirements.txt"]}} # add packages for development in the dev-requirements.txt file
+
+[project.scripts]
+# TODO: add your CLI entry points here
+
+
+
+

@@ -1,0 +1,48 @@
+# Block 4 of 10 — tokenizer + block_generator; materializes train/eval token blocks.
+# Depends on: block 2 (MODEL_NAME, DATASET_CONFIG, MIN_EDU_SCORE, BLOCK_SIZE, N_TRAIN_BLOCKS, N_EVAL_BLOCKS).
+# Defines EFFECTIVE_MODEL, train_blocks, eval_blocks used by every later block.
+import itertools
+from datasets import load_dataset
+from transformers import AutoTokenizer
+
+# Qwen/Qwen2.5-0.5B requires transformers>=4.43; fall back to a supported model
+# for the installed transformers==4.39.3
+_model_name = MODEL_NAME if "pythia" in MODEL_NAME.lower() else "EleutherAI/pythia-160m"
+if _model_name != MODEL_NAME:
+    print(f"NOTE: {MODEL_NAME} needs transformers>=4.43 (installed: 4.39.3). Using {_model_name} instead.")
+
+tokenizer = AutoTokenizer.from_pretrained(_model_name)
+tokenizer.pad_token = tokenizer.eos_token
+
+def block_generator(stream, n_blocks, min_score, block_size):
+    """Tokenize filtered docs and yield non-overlapping token blocks of exactly block_size."""
+    token_buffer = []
+    blocks_yielded = 0
+    for doc in stream:
+        if doc.get("score", 0) < min_score:
+            continue
+        ids = tokenizer(doc["text"], add_special_tokens=False)["input_ids"]
+        token_buffer.extend(ids)
+        while len(token_buffer) >= block_size and blocks_yielded < n_blocks:
+            yield {"input_ids": token_buffer[:block_size]}
+            token_buffer = token_buffer[block_size:]
+            blocks_yielded += 1
+        if blocks_yielded >= n_blocks:
+            break
+
+# Materialize train + eval blocks from a fresh stream so they don't overlap.
+_stream = load_dataset(
+    "HuggingFaceFW/fineweb-edu",
+    name=DATASET_CONFIG,
+    split="train",
+    streaming=True,
+)
+_gen = block_generator(_stream, N_TRAIN_BLOCKS + N_EVAL_BLOCKS, MIN_EDU_SCORE, BLOCK_SIZE)
+
+all_blocks   = list(_gen)
+train_blocks = all_blocks[:N_TRAIN_BLOCKS]
+eval_blocks  = all_blocks[N_TRAIN_BLOCKS:]
+EFFECTIVE_MODEL = _model_name
+print(f"Model:        {EFFECTIVE_MODEL}")
+print(f"train blocks: {len(train_blocks)}   eval blocks: {len(eval_blocks)}")
+print(f"total training tokens: {len(train_blocks) * BLOCK_SIZE:,}")
