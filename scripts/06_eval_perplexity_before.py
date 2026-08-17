@@ -1,7 +1,9 @@
 # Block 6 of 10 — loads the base model and measures perplexity before training.
-# Depends on: block 4 (EFFECTIVE_MODEL, eval_blocks).
+# Depends on: block 4 (EFFECTIVE_MODEL, eval_blocks), block 2 (RUN_STATE_DIR).
 # Defines causal_model, ppl_before used by later blocks.
+import json
 import math
+from pathlib import Path
 import torch
 import torch.nn.functional as F
 from transformers import AutoModelForCausalLM
@@ -26,3 +28,5 @@ ppl_before = perplexity(causal_model, eval_blocks)
 print(f"Device:            {_device}")
 print(f"Model type:        {type(causal_model).__name__}")
 print(f"Perplexity BEFORE: {ppl_before:.2f}")
+
+(Path(RUN_STATE_DIR) / "perplexity.json").write_text(json.dumps({"ppl_before": ppl_before}, indent=2))

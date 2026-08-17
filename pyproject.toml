@@ -16,7 +16,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-optional-dependencies = {dev = {file = ["dev-requirements.txt"]}} # add packages for development in the dev-requirements.txt file
+optional-dependencies = {dev = {file = ["dev-requirements.txt"]}, dashboard = {file = ["dashboard-requirements.txt"]}} # add packages for development in the dev-requirements.txt file
 
 [project.scripts]
 # TODO: add your CLI entry points here
