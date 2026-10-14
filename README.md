@@ -34,6 +34,19 @@ in order in the **same interpreter** (e.g. paste them into one REPL/Jupyter sess
 on its own will `NameError` on names like `EFFECTIVE_MODEL` that a prior block defines.
 Block 03 is independent and can be run on its own.
 
+`scripts/run_pipeline.py` does exactly that for you — it `exec()`s blocks 01, 02, 04–10 in
+one shared namespace:
+
+```
+python scripts/run_pipeline.py                                          # full run
+python scripts/run_pipeline.py --set MAX_STEPS=20 --set N_TRAIN_BLOCKS=200   # quick smoke run
+python scripts/run_pipeline.py --dashboard                              # also launch the dashboard
+```
+
+`--set KEY=VALUE` overrides any constant block 02 defines (applied right after block 02 runs;
+`config.json` is rewritten to match). The runner also marks the current block in
+`run_state/status.json`, and records the block and error there if one fails.
+
 ## Setup
 
 ```
@@ -56,6 +69,8 @@ is training in another terminal or notebook session.
 pip install -e ".[dashboard]"
 streamlit run dashboard/app.py
 ```
+
+or launch both together with `python scripts/run_pipeline.py --dashboard`.
 
 Run it from the repo root, in the same directory the pipeline session is writing
 `run_state/` to. Nothing under `run_state/` is committed (see `.gitignore`) — it's
