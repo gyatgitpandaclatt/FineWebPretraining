@@ -53,9 +53,7 @@ python scripts/run_pipeline.py --dashboard                              # also l
 pip install -e .
 ```
 
-`transformers`, `torch`, and `datasets` are declared in `pyproject.toml`. Note
-`04_tokenize_blocks.py` falls back from `Qwen/Qwen2.5-0.5B` to `EleutherAI/pythia-160m`
-when `transformers<4.43` is installed.
+`transformers`, `torch`, and `datasets` are declared in `pyproject.toml`.
 
 ## Live dashboard
 
