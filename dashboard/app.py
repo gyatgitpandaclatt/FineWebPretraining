@@ -16,6 +16,8 @@ import streamlit as st
 RUN_STATE_DIR = Path("run_state")
 
 STAGE_LABELS = {
+    "running": "Running",
+    "failed": "Failed",
     "training": "Training",
     "training_complete": "Training complete",
     "saved": "Model saved",
@@ -54,7 +56,7 @@ st.title("FineWeb-Edu Pretraining Dashboard")
 config = _read_json("config.json")
 
 if config is None:
-    st.info("No run detected yet. Run scripts/02_config.py onward (see README) to start a pipeline session.")
+    st.info("No run detected yet. Start one with `python scripts/run_pipeline.py` (see README).")
     st.stop()
 
 with st.sidebar:
@@ -67,12 +69,17 @@ def status_section():
     status = _read_json("status.json")
     st.subheader("Status")
     if status is None:
-        st.caption("Waiting for training to start (block 07)...")
+        st.caption("Waiting for the run to start...")
         return
     stage = status.get("stage", "unknown")
     step = status.get("step")
     max_steps = status.get("max_steps")
-    st.write(f"**{STAGE_LABELS.get(stage, stage)}**")
+    label = STAGE_LABELS.get(stage, stage)
+    if stage in ("running", "failed") and status.get("block"):
+        label += f" — {status['block']}"
+    st.write(f"**{label}**")
+    if stage == "failed" and status.get("error"):
+        st.error(status["error"])
     if step is not None and max_steps:
         st.progress(min(step / max_steps, 1.0), text=f"step {step}/{max_steps}")
 
